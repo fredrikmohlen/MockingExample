@@ -65,7 +65,7 @@ public class BookingSystemTest {
     void shouldThrowExceptionForInvalidInput(String roomId, LocalDateTime startTime, LocalDateTime endTime, String expectedMessage){
 
     if (roomId !=null && startTime != null && endTime != null) {
-        LocalDateTime testNow = LocalDateTime.of(2026, 01, 01, 00, 00);
+        LocalDateTime testNow = LocalDateTime.of(2026, 1, 1, 0, 0);
         when(timeProvider.getCurrentTime()).thenReturn(testNow);
     }
     assertThatThrownBy(()->bookingSystem.bookRoom(roomId,startTime,endTime))
