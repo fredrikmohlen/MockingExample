@@ -10,6 +10,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -148,5 +149,27 @@ public class BookingSystemTest {
                 .hasMessage(expectedMessage);
     }
 
+    @Test
+    void whenGivenOccupiedAndAvailableRoomGetAvailableRoomsShouldReturnAvailableRooms()
+            throws NotificationException {
+        LocalDateTime now = LocalDateTime.of(2026, 1, 1, 0, 0);
+        LocalDateTime startTime = now.plusDays(1);
+        LocalDateTime endTime = startTime.plusDays(3);
 
+        Room roomA = new Room("5", "Room Five");
+        Room roomB = new Room("6", "Room Six");
+        Room roomC = new Room("7", "Room Seven");
+        Booking booking = new Booking("b1","6", startTime, endTime);
+        roomB.addBooking(booking);
+
+        when(roomRepository.findAll()).thenReturn(List.of(roomA, roomB, roomC));
+
+        List<Room> result = bookingSystem.getAvailableRooms(startTime, endTime);
+
+        assertThat(result)
+                .hasSize(2)
+                .containsExactly(roomA, roomC)
+                .doesNotContain(roomB);
+
+            }
 }
