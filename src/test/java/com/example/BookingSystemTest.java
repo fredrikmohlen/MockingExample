@@ -14,8 +14,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class BookingSystemTest {
@@ -38,7 +38,7 @@ public class BookingSystemTest {
     void whenMakingCorrectBookingBookRoomReturnTrue() {
 
         String roomId = "5";
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.of(2026, 1, 1, 0, 0);
         LocalDateTime startTime = now.plusDays(1);
         LocalDateTime endTime = startTime.plusDays(3);
 
@@ -90,5 +90,48 @@ public class BookingSystemTest {
                 .hasMessage("Rummet existerar inte");
     }
 
+    @Test
+    void whenARoomIsOccupiedBookRoomReturnFalse() throws NotificationException {
 
+        String roomId = "5";
+        LocalDateTime now = LocalDateTime.of(2026, 1, 1, 0, 0);
+        LocalDateTime startTime = now.plusDays(1);
+        LocalDateTime endTime = startTime.plusDays(3);
+
+        when(timeProvider.getCurrentTime()).thenReturn(now);
+
+        Room room = new Room(roomId, "Room Five");
+        Booking existingBooking = new Booking("existing-id", roomId, startTime, endTime);
+        room.addBooking(existingBooking);
+
+        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room));
+
+        boolean result = bookingSystem.bookRoom(roomId, startTime, endTime);
+
+        assertThat(result).isFalse();
+
+        verify(roomRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldReturnTrueEvenWhenNotificationFails() throws NotificationException {
+        String roomId = "5";
+        LocalDateTime now = LocalDateTime.of(2026, 1, 1, 0, 0);
+        LocalDateTime startTime = now.plusDays(1);
+        LocalDateTime endTime = startTime.plusDays(3);
+
+        when(timeProvider.getCurrentTime()).thenReturn(now);
+
+        Room room = new Room(roomId, "Room Five");
+        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room));
+
+        doThrow(NotificationException.class)
+                .when(notificationService).sendBookingConfirmation(any());
+
+        boolean result = bookingSystem.bookRoom(roomId, startTime, endTime);
+        assertThat(result).isTrue();
+
+        verify(roomRepository).save(room);
+        Mockito.verify(notificationService).sendBookingConfirmation(any());
+    }
 }
