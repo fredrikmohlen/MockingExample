@@ -134,4 +134,19 @@ public class BookingSystemTest {
         verify(roomRepository).save(room);
         Mockito.verify(notificationService).sendBookingConfirmation(any());
     }
+
+    @ParameterizedTest
+    @CsvSource({
+            "2026-02-02T10:00, ,'Måste ange både start- och sluttid'",
+            " , 2026-02-02T10:00,'Måste ange både start- och sluttid'",
+            "2026-02-02T10:00,2026-01-05T10:00,'Sluttid måste vara efter starttid'"
+    })
+    void shouldThrowExceptionForInvalidInputInGetAvailableRooms(LocalDateTime startTime, LocalDateTime endTime, String expectedMessage) {
+
+        assertThatThrownBy(() -> bookingSystem.getAvailableRooms(startTime, endTime))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage(expectedMessage);
+    }
+
+
 }
