@@ -2,6 +2,8 @@ package com.example;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -11,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -25,7 +28,7 @@ public class BookingSystemTest {
 @InjectMocks
     BookingSystem bookingSystem;
 //Metoder som finns i BookingSystem.
-    //boolean bookRoom, 4 if-satser
+    //boolean bookRoom, 4 if-satser + tomt rum
     //List<Room> getAvailableRooms, 2 if-satser
     //boolean cancelBooking, 3 if-satser
 
@@ -51,5 +54,22 @@ public class BookingSystemTest {
     Mockito.verify(roomRepository).save(room);
 
 }
+@ParameterizedTest
+    @CsvSource({
+            ", 2026-02-02T10:00, 2026-02-02T12:00, 'Bokning kräver giltiga start- och sluttider samt rum-id'", // roomId is null
+            "5, , 2026-02-02T12:00, 'Bokning kräver giltiga start- och sluttider samt rum-id'",                // startTime is null
+            "5, 2026-02-02T10:00, , 'Bokning kräver giltiga start- och sluttider samt rum-id'",                // endTime is null
+            "5, 2025-02-02T10:00, 2026-02-02T12:00, 'Kan inte boka tid i dåtid'",                              // startTime is in the past
+            "5, 2026-02-02T10:00, 2026-01-02T12:00, 'Sluttid måste vara efter starttid'"                       // endTime is before starTime
+    })
+    void shouldThrowExceptionForInvalidInput(String roomId, LocalDateTime startTime, LocalDateTime endTime, String expectedMessage){
 
+    if (roomId !=null && startTime != null && endTime != null) {
+        LocalDateTime testNow = LocalDateTime.of(2026, 01, 01, 00, 00);
+        when(timeProvider.getCurrentTime()).thenReturn(testNow);
+    }
+    assertThatThrownBy(()->bookingSystem.bookRoom(roomId,startTime,endTime))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage(expectedMessage);
+}
 }
