@@ -14,18 +14,19 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class BookingSystemTest {
 
-@Mock
+    @Mock
     NotificationService notificationService;
-@Mock
+    @Mock
     RoomRepository roomRepository;
-@Mock
+    @Mock
     TimeProvider timeProvider;
-@InjectMocks
+    @InjectMocks
     BookingSystem bookingSystem;
 //Metoder som finns i BookingSystem.
     //boolean bookRoom, 4 if-satser + tomt rum
@@ -33,28 +34,29 @@ public class BookingSystemTest {
     //boolean cancelBooking, 3 if-satser
 
 
-@Test
-    void whenMakingCorrectBookingBookRoomReturnTrue(){
+    @Test
+    void whenMakingCorrectBookingBookRoomReturnTrue() {
 
-    String roomId = "5";
-    LocalDateTime now = LocalDateTime.now();
-    LocalDateTime startTime = now.plusDays(1);
-    LocalDateTime endTime = startTime.plusDays(3);
+        String roomId = "5";
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startTime = now.plusDays(1);
+        LocalDateTime endTime = startTime.plusDays(3);
 
-    when(timeProvider.getCurrentTime()).thenReturn(now);
+        when(timeProvider.getCurrentTime()).thenReturn(now);
 
-    Room room = new Room(roomId,"Room Five");
+        Room room = new Room(roomId, "Room Five");
 
-    when(roomRepository.findById(roomId)).thenReturn(Optional.of(room));
+        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room));
 
-    boolean result = bookingSystem.bookRoom(roomId,startTime,endTime);
+        boolean result = bookingSystem.bookRoom(roomId, startTime, endTime);
 
-    assertThat(result).isTrue();
+        assertThat(result).isTrue();
 
-    Mockito.verify(roomRepository).save(room);
+        Mockito.verify(roomRepository).save(room);
 
-}
-@ParameterizedTest
+    }
+
+    @ParameterizedTest
     @CsvSource({
             ", 2026-02-02T10:00, 2026-02-02T12:00, 'Bokning kräver giltiga start- och sluttider samt rum-id'", // roomId is null
             "5, , 2026-02-02T12:00, 'Bokning kräver giltiga start- och sluttider samt rum-id'",                // startTime is null
@@ -62,14 +64,31 @@ public class BookingSystemTest {
             "5, 2025-02-02T10:00, 2026-02-02T12:00, 'Kan inte boka tid i dåtid'",                              // startTime is in the past
             "5, 2026-02-02T10:00, 2026-01-02T12:00, 'Sluttid måste vara efter starttid'"                       // endTime is before starTime
     })
-    void shouldThrowExceptionForInvalidInput(String roomId, LocalDateTime startTime, LocalDateTime endTime, String expectedMessage){
-
-    if (roomId !=null && startTime != null && endTime != null) {
-        LocalDateTime testNow = LocalDateTime.of(2026, 1, 1, 0, 0);
-        when(timeProvider.getCurrentTime()).thenReturn(testNow);
+    void shouldThrowExceptionForInvalidInputInBookRoom(String roomId, LocalDateTime startTime, LocalDateTime endTime, String expectedMessage) {
+        if (roomId != null && startTime != null && endTime != null) {
+            LocalDateTime testNow = LocalDateTime.of(2026, 1, 1, 0, 0);
+            when(timeProvider.getCurrentTime()).thenReturn(testNow);
+        }
+        assertThatThrownBy(() -> bookingSystem.bookRoom(roomId, startTime, endTime))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage(expectedMessage);
     }
-    assertThatThrownBy(()->bookingSystem.bookRoom(roomId,startTime,endTime))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage(expectedMessage);
-}
+
+    @Test
+    void whenRoomDoesNotExistBookRoomReturnException() {
+        String roomId = "5";
+        LocalDateTime now = LocalDateTime.of(2026, 1, 1, 0, 0);
+        LocalDateTime startTime = now.plusDays(1);
+        LocalDateTime endTime = startTime.plusDays(3);
+
+        when(timeProvider.getCurrentTime()).thenReturn(now);
+
+        when(roomRepository.findById(roomId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(()-> bookingSystem.bookRoom(roomId, startTime, endTime))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Rummet existerar inte");
+    }
+
+
 }
