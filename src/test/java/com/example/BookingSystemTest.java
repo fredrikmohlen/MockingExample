@@ -19,7 +19,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class BookingSystemTest {
+class BookingSystemTest {
 
     @Mock
     NotificationService notificationService;
@@ -92,7 +92,7 @@ public class BookingSystemTest {
     }
 
     @Test
-    void whenARoomIsOccupiedBookRoomReturnFalse() throws NotificationException {
+    void whenARoomIsOccupiedBookRoomReturnFalse() {
 
         String roomId = "5";
         LocalDateTime now = LocalDateTime.of(2026, 1, 1, 0, 0);
@@ -150,8 +150,7 @@ public class BookingSystemTest {
     }
 
     @Test
-    void whenGivenOccupiedAndAvailableRoomGetAvailableRoomsShouldReturnAvailableRooms()
-            throws NotificationException {
+    void whenGivenOccupiedAndAvailableRoomGetAvailableRoomsShouldReturnAvailableRooms() {
         LocalDateTime now = LocalDateTime.of(2026, 1, 1, 0, 0);
         LocalDateTime startTime = now.plusDays(1);
         LocalDateTime endTime = startTime.plusDays(3);
@@ -170,6 +169,85 @@ public class BookingSystemTest {
                 .hasSize(2)
                 .containsExactly(roomA, roomC)
                 .doesNotContain(roomB);
-
             }
+            // cancel booking
+            // make sure that roomWithBooking returns false if .isEmpty()
+    // om endTime innan StartTime
+    // Lyckad cancelering
+
+    @Test
+    void whenNullBookingIdCancelBookingShouldReturnException(){
+
+        String bookingId = null;
+
+        assertThatThrownBy(() -> bookingSystem.cancelBooking(bookingId))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Boknings-id kan inte vara null");
+    }
+
+    @Test
+    void whenCancelingAnExistingBookingCancelBookingShouldReturnTrue() throws NotificationException {
+        String roomId = "5";
+        LocalDateTime now = LocalDateTime.of(2026, 1, 1, 0, 0);
+        LocalDateTime startTime = now.plusDays(1);
+        LocalDateTime endTime = startTime.plusDays(3);
+
+        when(timeProvider.getCurrentTime()).thenReturn(now);
+        Room room = new Room(roomId, "Room Five");
+        Room room2 = new Room("6", "Room Six");
+
+        when(roomRepository.findAll()).thenReturn(List.of(room, room2));
+
+        Booking fakeBooking = new Booking("fakeBookingId", roomId, startTime, endTime);
+        Booking fakeBooking2 = new Booking("fakeBookingId2", "6", startTime, endTime);
+        room.addBooking(fakeBooking);
+        room2.addBooking(fakeBooking2);
+
+        assertThat(bookingSystem.cancelBooking(fakeBooking.getId())).isTrue();
+        assertThat(room.hasBooking("fakeBookingId")).isFalse();
+
+        verify(roomRepository).save(room);
+        verify(notificationService).sendCancellationConfirmation(fakeBooking);
+
+    }
+
+    @Test
+    void cancelBookingShouldReturnFalseWhenBookingNotFound(){
+
+        Room room = new Room("5", "Room Five");
+        Room room2 = new Room("6", "Room Six");
+
+        String bookingId = "fakeBookingId";
+
+        when(roomRepository.findAll()).thenReturn(List.of(room, room2));
+
+        boolean result = bookingSystem.cancelBooking(bookingId);
+
+        assertThat(result).isFalse();
+
+        verify(roomRepository, never()).save(any());
+    }
+
+    @Test
+    void cancelBookingShouldThrowExceptionWhenBookinghasAlreadyStarted() {
+        String bookingId = "past-booking";
+        LocalDateTime now = LocalDateTime.of(2026, 1, 1, 10, 0);
+        LocalDateTime startTime = now.minusHours(1);
+        LocalDateTime endTime = startTime.plusHours(3);
+
+        when(timeProvider.getCurrentTime()).thenReturn(now);
+
+        Room room = new Room("5", "Room Five");
+        Booking pastBooking = new Booking(bookingId,"5", startTime, endTime);
+        room.addBooking(pastBooking);
+
+        when(roomRepository.findAll()).thenReturn(List.of(room));
+
+        assertThatThrownBy(() -> bookingSystem.cancelBooking(bookingId))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Kan inte avboka påbörjad eller avslutad bokning");
+
+        assertThat(room.hasBooking(bookingId)).isTrue();
+
+    }
 }
