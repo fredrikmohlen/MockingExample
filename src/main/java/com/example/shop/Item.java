@@ -15,5 +15,19 @@ public class Item {
         this.discountPercentage = BigDecimal.ZERO;
     }
 
+    public String getName() {
+        return name;
+    }
 
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public BigDecimal getDiscountPercentage() {
+        return discountPercentage;
+    }
 }
