@@ -1,13 +1,21 @@
 package com.example.shop;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@ExtendWith(MockitoExtension.class)
 class ShoppingCartTest {
+
+    @Mock
+    DiscountService discountService;
 
     @Test
     void shouldReturnSizeOneWhenOneItemIsAdded(){
@@ -59,4 +67,15 @@ class ShoppingCartTest {
 
     }
 
+    @Test
+    void shouldApplyDiscountToPrice(){
+        DiscountService discountServiceMock = Mockito.mock(DiscountService.class);
+
+        Mockito.when(discountServiceMock.getDiscountMultiplier("Handball")).thenReturn(new BigDecimal("0.9"));
+
+        ShoppingCart cart = new ShoppingCart(discountServiceMock);
+        cart.addItem(new Item("Handball", new BigDecimal("100.0"),1));
+
+        assertEquals(0, new BigDecimal("90").compareTo(cart.getTotalPrice()));
+    }
 }

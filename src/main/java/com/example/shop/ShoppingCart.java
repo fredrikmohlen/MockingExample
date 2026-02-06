@@ -6,7 +6,14 @@ import java.util.List;
 
 public class ShoppingCart {
     private final List<Item> items = new ArrayList<>();
+    private final DiscountService discountService;
 
+    ShoppingCart(DiscountService discountService) {
+        this.discountService =  discountService;
+    }
+    ShoppingCart() {
+        this.discountService = itemName -> BigDecimal.ONE;
+    }
 
     public void addItem(Item newItem) {
         items.stream()
@@ -25,7 +32,12 @@ public class ShoppingCart {
     public BigDecimal getTotalPrice() {
         BigDecimal totalPrice = BigDecimal.ZERO;
         for(Item item : items) {
-            BigDecimal itemTotal = item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
+            BigDecimal multiplier = discountService.getDiscountMultiplier(item.getName());
+
+            BigDecimal itemTotal = item.getPrice()
+                    .multiply(BigDecimal.valueOf(item.getQuantity()))
+                    .multiply(multiplier);
+
             totalPrice = totalPrice.add(itemTotal);
         }
         return totalPrice;
