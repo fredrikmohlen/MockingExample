@@ -18,27 +18,27 @@ class ShoppingCartTest {
     DiscountService discountService;
 
     @Test
-    void shouldReturnSizeOneWhenOneItemIsAdded(){
+    void shouldReturnSizeOneWhenOneItemIsAdded() {
         ShoppingCart cart = new ShoppingCart();
-        Item item = new Item("Football", new BigDecimal("150.0"),1);
+        Item item = new Item("Football", new BigDecimal("150.0"), 1);
         cart.addItem(item);
         assertEquals(1, cart.getItems().size());
     }
 
     @Test
-    void shouldCalculateTotalPriceForMultipleItemsOfOneQuantity(){
+    void shouldCalculateTotalPriceForMultipleItemsOfOneQuantity() {
         ShoppingCart cart = new ShoppingCart();
-        cart.addItem(new Item("Football", new BigDecimal("150.0"),1));
-        cart.addItem(new Item("Socks", new BigDecimal("50.0"),1));
+        cart.addItem(new Item("Football", new BigDecimal("150.0"), 1));
+        cart.addItem(new Item("Socks", new BigDecimal("50.0"), 1));
 
         assertEquals(new BigDecimal("200.0"), cart.getTotalPrice());
     }
 
     @Test
-    void shouldRemoveItemAndUpdateTotalWhenItemIsRemoved(){
+    void shouldRemoveItemAndUpdateTotalWhenItemIsRemoved() {
         ShoppingCart cart = new ShoppingCart();
-        Item football = new Item("Football", new BigDecimal("150.0"),1);
-        Item socks = new Item("Socks", new BigDecimal("50.0"),1);
+        Item football = new Item("Football", new BigDecimal("150.0"), 1);
+        Item socks = new Item("Socks", new BigDecimal("50.0"), 1);
 
         cart.addItem(football);
         cart.addItem(socks);
@@ -46,35 +46,35 @@ class ShoppingCartTest {
         cart.removeItem(football);
 
         assertAll(
-                ()-> assertEquals(1, cart.getItems().size(),"Number of items is incorrect"),
-                ()-> assertEquals(0, new BigDecimal("50.0")
-                        .compareTo(cart.getTotalPrice()),"Total price is incorrect")
+                () -> assertEquals(1, cart.getItems().size(), "Number of items is incorrect"),
+                () -> assertEquals(0, new BigDecimal("50.0")
+                        .compareTo(cart.getTotalPrice()), "Total price is incorrect")
         );
 
     }
 
     @Test
-    void shouldIncreaseQuantityWhenAddingSameItem(){
+    void shouldIncreaseQuantityWhenAddingSameItem() {
         ShoppingCart cart = new ShoppingCart();
-        Item football = new Item("Football", new BigDecimal("150.0"),1);
+        Item football = new Item("Football", new BigDecimal("150.0"), 1);
 
         cart.addItem(football);
         cart.addItem(football);
 
         assertEquals(1, cart.getItems().size(), "Should not add new row of the same item");
-        assertEquals(2, football.getQuantity(),"Quantity should be two");
+        assertEquals(2, football.getQuantity(), "Quantity should be two");
         assertEquals(0, new BigDecimal("300.0").compareTo(cart.getTotalPrice()), "Price should reflect total quantity");
 
     }
 
     @Test
-    void shouldApplyDiscountToPrice(){
+    void shouldApplyDiscountToPrice() {
         DiscountService discountServiceMock = Mockito.mock(DiscountService.class);
 
         Mockito.when(discountServiceMock.getDiscountMultiplier("Handball")).thenReturn(new BigDecimal("0.9"));
 
         ShoppingCart cart = new ShoppingCart(discountServiceMock);
-        cart.addItem(new Item("Handball", new BigDecimal("100.0"),1));
+        cart.addItem(new Item("Handball", new BigDecimal("100.0"), 1));
 
         assertEquals(0, new BigDecimal("90").compareTo(cart.getTotalPrice()));
     }
