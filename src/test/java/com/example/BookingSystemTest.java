@@ -29,10 +29,7 @@ class BookingSystemTest {
     TimeProvider timeProvider;
     @InjectMocks
     BookingSystem bookingSystem;
-//Metoder som finns i BookingSystem.
-    //boolean bookRoom, 4 if-satser + tomt rum
-    //List<Room> getAvailableRooms, 2 if-satser
-    //boolean cancelBooking, 3 if-satser
+
 
 
     @Test
@@ -170,10 +167,7 @@ class BookingSystemTest {
                 .containsExactly(roomA, roomC)
                 .doesNotContain(roomB);
             }
-            // cancel booking
-            // make sure that roomWithBooking returns false if .isEmpty()
-    // om endTime innan StartTime
-    // Lyckad cancelering
+
 
     @Test
     void whenNullBookingIdCancelBookingShouldReturnException(){
