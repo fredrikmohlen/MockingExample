@@ -8,8 +8,14 @@ public class ShoppingCart {
     private final List<Item> items = new ArrayList<>();
 
 
-    public void addItem(Item item) {
-        items.add(item);
+    public void addItem(Item newItem) {
+        items.stream()
+                .filter(item -> item.getName().equals(newItem.getName()))
+                .findFirst()
+                .ifPresentOrElse(
+                        existing -> existing.setQuantity(existing.getQuantity() + newItem.getQuantity()),
+                        () -> items.add(newItem)
+                );
     }
 
     public List<Item> getItems() {
@@ -19,9 +25,9 @@ public class ShoppingCart {
     public BigDecimal getTotalPrice() {
         BigDecimal totalPrice = BigDecimal.ZERO;
         for(Item item : items) {
-            totalPrice = totalPrice.add(item.getPrice());
+            BigDecimal itemTotal = item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
+            totalPrice = totalPrice.add(itemTotal);
         }
-
         return totalPrice;
     }
 

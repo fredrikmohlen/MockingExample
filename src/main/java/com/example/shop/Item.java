@@ -1,6 +1,7 @@
 package com.example.shop;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 public class Item {
 
@@ -29,5 +30,20 @@ public class Item {
 
     public BigDecimal getDiscountPercentage() {
         return discountPercentage;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Item item)) return false;
+        return quantity == item.quantity && Objects.equals(name, item.name) && Objects.equals(price, item.price) && Objects.equals(discountPercentage, item.discountPercentage);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, price, quantity, discountPercentage);
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
     }
 }
