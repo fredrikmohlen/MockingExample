@@ -62,7 +62,7 @@ class ShoppingCartTest {
         cart.addItem(football);
 
         assertEquals(1, cart.getItems().size(), "Should not add new row of the same item");
-        assertEquals(2, football.getQuantity(), "Quantity should be two");
+        assertEquals(2, cart.getItems().getFirst().getQuantity(), "Quantity should be two");
         assertEquals(0, new BigDecimal("300.0").compareTo(cart.getTotalPrice()), "Price should reflect total quantity");
 
     }
@@ -76,6 +76,12 @@ class ShoppingCartTest {
         ShoppingCart cart = new ShoppingCart(discountServiceMock);
         cart.addItem(new Item("Handball", new BigDecimal("100.0"), 1));
 
-        assertEquals(0, new BigDecimal("90").compareTo(cart.getTotalPrice()));
+        assertEquals(0, new BigDecimal("90").compareTo(cart.getTotalPrice()), "Discount wasn't applied correctly");
+    }
+
+    @Test
+    void shouldReturnZeroPriceWhenCartIsEmpty() {
+        ShoppingCart cart = new ShoppingCart();
+        assertEquals(0, BigDecimal.ZERO.compareTo(cart.getTotalPrice()));
     }
 }

@@ -33,7 +33,9 @@ public class ShoppingCart {
         BigDecimal totalPrice = BigDecimal.ZERO;
         for(Item item : items) {
             BigDecimal multiplier = discountService.getDiscountMultiplier(item.getName());
-
+            if (multiplier == null) {
+                multiplier = BigDecimal.ONE;
+            }
             BigDecimal itemTotal = item.getPrice()
                     .multiply(BigDecimal.valueOf(item.getQuantity()))
                     .multiply(multiplier);
