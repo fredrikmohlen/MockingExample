@@ -24,4 +24,8 @@ public class ShoppingCart {
 
         return totalPrice;
     }
+
+    public void removeItem(Item item) {
+        items.remove(item);
+    }
 }
