@@ -84,4 +84,24 @@ class ShoppingCartTest {
         ShoppingCart cart = new ShoppingCart();
         assertEquals(0, BigDecimal.ZERO.compareTo(cart.getTotalPrice()));
     }
+
+    @Test
+    void shouldReturnZeroPriceWhenOnlyItemIsRemoved() {
+        ShoppingCart cart = new ShoppingCart();
+        Item ball = new Item("Ball", new BigDecimal("100.0"), 1);
+        cart.addItem(ball);
+        cart.removeItem(ball);
+
+        assertEquals(0, cart.getItems().size());
+        assertEquals(0, BigDecimal.ZERO.compareTo(cart.getTotalPrice()));
+    }
+    @Test
+    void shouldHandleNullDiscountByUsingOriginalPrice() {
+        DiscountService discountServiceMock = Mockito.mock(DiscountService.class);
+
+        ShoppingCart cart = new ShoppingCart(discountServiceMock);
+        cart.addItem(new Item("Socks", new BigDecimal("50.0"), 1));
+
+        assertEquals(0, new BigDecimal("50.0").compareTo(cart.getTotalPrice()));
+    }
 }
