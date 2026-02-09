@@ -1,0 +1,6 @@
+# .coderabbit.yml
+review:
+  enabled: true
+  summarize: true
+  max_comments: 20
+  severity_threshold: medium
